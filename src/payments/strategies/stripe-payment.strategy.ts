@@ -31,8 +31,8 @@ export class StripePaymentStrategy implements PaymentStrategy {
             },
             line_items: lineItems,
             mode: 'payment',
-            success_url: 'http://localhost:3003/payments/success',
-            cancel_url: 'http://localhost:3003/payments/cancel'
+            success_url: envs.STRIPE_SUCCESS_URL,
+            cancel_url: envs.STRIPE_CANCEL_URL
         });
 
         return session;
@@ -46,8 +46,8 @@ export class StripePaymentStrategy implements PaymentStrategy {
     webhook(req: Request, res: Response): any {
         const signature = req.headers['stripe-signature'];
 
-        const endpointSecretTesting = "whsec_b8b0d7884e0c6b84a0e3a9303144b755bfcebf141304abc1b54e153ec535a7a0";
-        const endpointSecret = "whsec_5sobYQst0X7aToAFlg1yvAuCHBF1TvFj";
+        const endpointSecret = envs.STRIPE_ENDPOINT_SECRET;
+        
         let event: Stripe.Event;
 
         try {

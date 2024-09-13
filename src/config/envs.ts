@@ -6,6 +6,9 @@ interface EnvVars {
     NODE_ENV: string;
     STRIPE_SECRET_KEY: string;
     PAYMENT_PROVIDER: string;
+    STRIPE_SUCCESS_URL: string;
+    STRIPE_CANCEL_URL: string;
+    STRIPE_ENDPOINT_SECRET: string;
 }
 
 const envVarsSchema = joi.object({
@@ -15,7 +18,10 @@ const envVarsSchema = joi.object({
         .required(),
     PORT: joi.number().required(),
     STRIPE_SECRET_KEY: joi.string().required(),
-    PAYMENT_PROVIDER: joi.string().required()
+    PAYMENT_PROVIDER: joi.string().required(),
+    STRIPE_SUCCESS_URL: joi.string().uri({ scheme: ['http', 'https'] }).required(),
+    STRIPE_CANCEL_URL: joi.string().uri({ scheme: ['http', 'https'] }).required(),
+    STRIPE_ENDPOINT_SECRET: joi.string().required()
 }).unknown(true);
 
 const { error, value } = envVarsSchema.validate(process.env);
@@ -30,5 +36,8 @@ export const envs = {
     PORT: envVars.PORT,
     NODE_ENV: envVars.NODE_ENV,
     STRIPE_SECRET_KEY: envVars.STRIPE_SECRET_KEY,
-    PAYMENT_PROVIDER: envVars.PAYMENT_PROVIDER
+    PAYMENT_PROVIDER: envVars.PAYMENT_PROVIDER,
+    STRIPE_SUCCESS_URL: envVars.STRIPE_SUCCESS_URL,
+    STRIPE_CANCEL_URL: envVars.STRIPE_CANCEL_URL,
+    STRIPE_ENDPOINT_SECRET: envVars.STRIPE_ENDPOINT_SECRET
 };
