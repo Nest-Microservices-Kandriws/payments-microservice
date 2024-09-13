@@ -1,0 +1,1 @@
+export const PAYMENT_STRATEGY = 'PAYMENT_STRATEGY';
