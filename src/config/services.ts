@@ -1,1 +1,2 @@
 export const PAYMENT_STRATEGY = 'PAYMENT_STRATEGY';
+export const NAST_SERVICE = 'NAST_SERVICE';

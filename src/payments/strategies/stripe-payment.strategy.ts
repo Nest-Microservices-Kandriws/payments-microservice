@@ -1,12 +1,18 @@
 import Stripe from "stripe";
 import { PaymentStrategy } from "./payment-strategy.interface";
-import { envs } from "src/config";
+import { envs, NAST_SERVICE } from "src/config";
 import { PaymentSessionDto } from "../dto";
 import { Request, Response } from "express";
+import { Inject, Logger } from "@nestjs/common";
+import { ClientProxy } from "@nestjs/microservices";
 
 export class StripePaymentStrategy implements PaymentStrategy {
 
     private readonly stripe = new Stripe(envs.STRIPE_SECRET_KEY, {});
+    private readonly logger = new Logger(StripePaymentStrategy.name);
+    constructor(
+        private readonly client: ClientProxy // Inyección a través del constructor
+    ) { }
     async createPaymentIntent(paymentSessionDto: PaymentSessionDto) {
         const { currency, items, orderId } = paymentSessionDto;
 
@@ -35,7 +41,11 @@ export class StripePaymentStrategy implements PaymentStrategy {
             cancel_url: envs.STRIPE_CANCEL_URL
         });
 
-        return session;
+        return {
+            cancelUrl: session.cancel_url,
+            successUrl: session.success_url,
+            url: session.url
+        };
     }
     success(): void {
         //throw new Error("Method not implemented.");
@@ -47,7 +57,7 @@ export class StripePaymentStrategy implements PaymentStrategy {
         const signature = req.headers['stripe-signature'];
 
         const endpointSecret = envs.STRIPE_ENDPOINT_SECRET;
-        
+
         let event: Stripe.Event;
 
         try {
@@ -58,15 +68,18 @@ export class StripePaymentStrategy implements PaymentStrategy {
             return;
         }
 
-
         switch (event.type) {
             case 'charge.succeeded':
                 const chargeSucceeded: Stripe.Charge = event.data.object;
-                // TODO:  call to microservice
-                console.log({
-                    metadata: chargeSucceeded.metadata,
-                    orderId: chargeSucceeded.metadata.orderId
-                });
+                const payload = {
+                    stripePaymentId: chargeSucceeded.id,
+                    orderId: chargeSucceeded.metadata.orderId,
+                    receiptUrl: chargeSucceeded.receipt_url
+                }
+
+                console.log(payload);
+                this.client.emit('paymentSucceeded', payload);
+
                 break;
             default:
                 console.log(`Unhandled event type ${event.type}.`);
